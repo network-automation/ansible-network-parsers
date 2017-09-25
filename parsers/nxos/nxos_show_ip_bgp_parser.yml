@@ -1,3 +1,4 @@
+---
 # NXOS Show IP BGP Parser
 #
 # Command: show ip bgp
@@ -30,7 +31,7 @@
 #
 #     - name: Parse BGP Facts
 #       set_fact:
-#         bgp_facts: "{{ nxos_bgp | parse_cli(bgp_parser_path)}}"
+#         router_facts: "{{ nxos_bgp | parse_cli(bgp_parser_path)}}"
 #
 #
 # Schema Output:
@@ -38,7 +39,7 @@
 #ok: [cisco01] => {
 #    "ansible_facts": {
 #        "router_facts": {
-#            "bgp": [
+#            "bgp_routes": [
 #                {
 #                    "installed": true,
 #                    "local_preference": 100,
@@ -69,12 +70,8 @@
 #            ]
 #        }
 #    },
-#    "changed": false,
-#    "failed": false
 #}
 #
--------
-
 vars:
   route:
     network: "{{ item.network }}"
@@ -85,6 +82,6 @@ vars:
     path: " {{ item.path }}"
     installed: "{{ item.status_var == '>' }}"
 keys:
-  bgp:
+  bgp_routes:
     value: "{{ route }}"
     items: "\\*(?P<status_var>\\S)(?P<bgp_session>\\w)(?P<network>[0-9./]+)\\s+(?P<next_hop>[0-9./]+)\\s{10,20}(?P<metric>\\d+|[ ])\\s{5,20}(?P<local_pref>\\d+|[ ])\\s{5,20}(?P<weight>\\d+)\\s{1}(?P<path>.+)"

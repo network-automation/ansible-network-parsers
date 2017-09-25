@@ -23,6 +23,8 @@ In each Network OS directory one can find parsers for
 * VLAN details
 * BGP details
 * OSPF details
+* SYSLOG Details
+* NTP Details
 
 A number of these parsers are used the network specific fact collection modules like
 `` nxos_facts `` or ``ios_facts``.

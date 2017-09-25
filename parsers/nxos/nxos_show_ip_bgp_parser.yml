@@ -1,0 +1,90 @@
+# NXOS Show IP BGP Parser
+#
+# Command: show ip bgp
+#
+# Example Command Output:
+# ----------------------
+# BGP routing table information for VRF default, address family IPv4 Unicast
+# BGP table version is 6, local router ID is 10.100.1.1
+# Status: s-suppressed, x-deleted, S-stale, d-dampened, h-history, *-valid, >-best
+# Path type: i-internal, e-external, c-confed, l-local, a-aggregate, r-redist, I-injected
+# Origin codes: i - IGP, e - EGP, ? - incomplete, | - multipath, & - backup
+
+#   Network            Next Hop            Metric     LocPrf     Weight Path
+# *>r10.100.1.1/32      0.0.0.0                  0        100      32768 ?
+# *>e10.100.1.3/32      10.2.2.1                 0                     0 65012 ?
+# *>e10.200.1.2/31      10.2.2.1                 0                     0 65012 ?
+
+#
+# Example Playbook
+# -----------------
+# -hosts: localhost
+#  connection: local
+#  vars:
+#    bgp_parse_path: /path/to/parsers/nxos_show_ip_bgp_parser.yml
+#  tasks:
+#     - name: Get BGP Information
+#       nxos_command:
+#         commands: show ip bgp
+#       register: nxos_bgp
+#
+#     - name: Parse BGP Facts
+#       set_fact:
+#         bgp_facts: "{{ nxos_bgp | parse_cli(bgp_parser_path)}}"
+#
+#
+# Schema Output:
+# ----------
+#ok: [cisco01] => {
+#    "ansible_facts": {
+#        "router_facts": {
+#            "bgp": [
+#                {
+#                    "installed": true,
+#                    "local_preference": 100,
+#                    "metric": 0,
+#                    "network": "10.100.1.1/32",
+#                    "next_hop": "0.0.0.0",
+#                    "path": " ?",
+#                    "weight": 32768
+#                },
+#                {
+#                    "installed": true,
+#                    "local_preference": " ",
+#                    "metric": 0,
+#                    "network": "10.100.1.3/32",
+#                    "next_hop": "10.2.2.1",
+#                    "path": " 65012 ?",
+#                    "weight": 0
+#                },
+#                {
+#                    "installed": true,
+#                    "local_preference": " ",
+#                    "metric": 0,
+#                    "network": "10.200.1.2/31",
+#                    "next_hop": "10.2.2.1",
+#                    "path": " 65012 ?",
+#                    "weight": 0
+#                }
+#            ]
+#        }
+#    },
+#    "changed": false,
+#    "failed": false
+#}
+#
+-------
+
+vars:
+  route:
+    network: "{{ item.network }}"
+    next_hop: "{{ item.next_hop }}"
+    metric: "{{ item.metric }}"
+    local_preference: "{{ item.local_pref }}"
+    weight: "{{ item.weight }}"
+    path: " {{ item.path }}"
+    installed: "{{ item.status_var == '>' }}"
+keys:
+  bgp:
+    value: "{{ route }}"
+    items: "\\*(?P<status_var>\\S)(?P<bgp_session>\\w)(?P<network>[0-9./]+)\\s+(?P<next_hop>[0-9./]+)\\s{10,20}(?P<metric>\\d+|[ ])\\s{5,20}(?P<local_pref>\\d+|[ ])\\s{5,20}(?P<weight>\\d+)\\s{1}(?P<path>.+)"

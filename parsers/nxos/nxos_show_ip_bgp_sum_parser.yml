@@ -1,0 +1,75 @@
+---
+# NXOS Show IP BGP Summary Parser
+#
+# Command: show ip bgp summary
+#
+# Example Command Output:
+# ----------------------
+#
+# spine1# show ip bgp sum
+# BGP summary information for VRF default, address family IPv4 Unicast
+# BGP router identifier 10.100.1.1, local AS number 65010
+# BGP table version is 6, IPv4 Unicast config peers 2, capable peers 1
+# network entries and 3 paths using 432 bytes of memory
+# BGP attribute entries [2/288], BGP AS path entries [1/6]
+# BGP community entries [0/0], BGP clusterlist entries [0/0]
+#
+# Neighbor        V    AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down
+# State/PfxRcd
+# 10.1.1.1        4 65011       0       0        0    0    0 02:30:30 Idle
+# 10.2.2.1        4 65012    3010    2997        6    0    0 02:30:19 2
+#
+# Schema Output
+# -------------
+#
+#ok: [cisco01] => {
+#    "ansible_facts": {
+#        "router_facts": {
+#            "bgp_neighbors": [
+#                {
+#                    "as": 65011,
+#                    "in_queue": 0,
+#                    "msgrcvd": 0,
+#                    "msgsent": 0,
+#                    "name": "10.1.1.1",
+#                    "out_queue": 0,
+#                    "status": "Idle     ",
+#                    "table_version": 0,
+#                    "timer": "00:00:32",
+#                    "version": 4
+#                },
+#                {
+#                    "as": 65012,
+#                    "in_queue": 0,
+#                    "msgrcvd": 0,
+#                    "msgsent": 0,
+#                    "name": "10.2.2.1",
+#                    "out_queue": 0,
+#                    "status": "Idle",
+#                    "table_version": 0,
+#                    "timer": "00:00:32",
+#                    "version": 4
+#                }
+#            ]
+#        }
+#    },
+#    "changed": false,
+#    "failed": false
+#}
+
+vars:
+  neighbor:
+    name: "{{ item.neighbor }}"
+    version: "{{ item.version }}"
+    as: "{{ item.as }}"
+    msgrcvd: "{{ item.msgrcvd }}"
+    msgsent: "{{ item.msgsent }}"
+    table_version: "{{ item.tblver }}"
+    in_queue: "{{ item.inq }}"
+    out_queue: "{{ item.outq }}"
+    timer: "{{ item.timer }}"
+    status: "{{ item.status }}"
+keys:
+  bgp_neighbors:
+    value: "{{ neighbor }}"
+    items: "^(?P<neighbor>[0-9a-f.]+)\\s+(?P<version>\\d+)\\s+(?P<as>\\d+)\\s+(?P<msgrcvd>\\d+)\\s+(?P<msgsent>\\d+)\\s+(?P<tblver>\\d+)\\s+(?P<inq>\\d+)\\s+(?P<outq>\\d+)\\s+(?P<timer>[0-9:]+)\\s+(?P<status>.+)\\s*"

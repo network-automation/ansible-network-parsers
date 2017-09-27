@@ -3,10 +3,10 @@
 
 This repository contains CLI parsers using the [``parse_cli``|http://docs.ansible.com/ansible/latest/playbooks_filters.html#network-cli-filters] Ansible filter. The network IOS covered are:
 
-* Cisco IOS
-* Cisco NXOS
-* Cisco IOS-XR
-* Arista
+* Cisco NXOS (3 parsers so far)
+* Cisco IOS (WIP)
+* Cisco IOS-XR (WIP)
+* Arista (WIP)
 
 
 The structure of the repository is as follows:
@@ -27,7 +27,7 @@ In each Network OS directory one can find parsers for
 * NTP Details
 * SNMP Details
 
-A number of these parsers are used the network specific fact collection modules like
+A number of these parsers can possibly be included in future iterations of network specific fact collection modules like
 `` nxos_facts `` or ``ios_facts``.
 
 ## USAGE

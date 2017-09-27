@@ -45,7 +45,7 @@ Here is an example of how to use a NxOS CLI parser
       register: iface_output
     - name: generate fact from interface output
       set_facts:
-        nxos_ifaces: "{{ iface_output.stdout[0] |parse_cli('./parsers/nxos/interfaces_parser.yml')
+        nxos_ifaces: "{{ iface_output.stdout[0] |parse_cli('./parsers/nxos/nxos_show_interface_parser.yml')
 ```
 
 ## LICENSE

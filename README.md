@@ -11,11 +11,13 @@ This repository contains CLI parsers using the [``parse_cli``](http://docs.ansib
 
 The structure of the repository is as follows:
 
+```
 parsers
 ├── eos
 ├── ios
 ├── iosxr
 └── nxos
+```
 
 In each Network OS directory one can find parsers for
 

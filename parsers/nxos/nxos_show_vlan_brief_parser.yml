@@ -1,0 +1,99 @@
+---
+# NXOS Show Vlan Brief Parser
+#
+# Command: show vlan brief
+#
+# Example Command Output:
+# ----------------------
+#
+# VLAN Name                             Status    Ports
+# ---- -------------------------------- --------- -------------------------------
+# 1    default                          active    Eth2/5
+# 2    VLAN0002                         active    Eth2/4, Eth2/5
+# 3    VLAN0003                         active    Eth2/5
+# 4    VLAN0004                         active    Eth2/5
+# 5    VLAN0005                         active    Eth2/5
+#
+# Example Playbook
+# ----------------
+# -hosts: localhost
+#  connection: local
+#  vars:
+#    vlan_parse_path: /path/to/parsers/nxos_show_vlan_brief_parser.yml
+#  tasks:
+#     - name: get show interface output
+#       nxos_command:
+#         commands:
+#           - "show vlan brief"
+#       register: vlan_output
+#
+#     - set_fact:
+#       nxos_vlans: "{{ vlan_output.stdout[0] | parse_cli('./parsers/nxos/nxos_show_vlan_brief_parser.yml') }}"
+#
+# # Schema Output
+# -------------
+#
+#
+# ok: [cisco01] => {
+#     "ansible_facts": {
+#         "nxos_vlans": {
+#             "vlans": [
+#                 {
+#                     "id": 1,
+#                     "name": "default",
+#                     "ports": [
+#                         "Ethernet2/5"
+#                     ],
+#                     "status": "active"
+#                 },
+#                 {
+#                     "id": 2,
+#                     "name": "VLAN0002",
+#                     "ports": [
+#                         "Ethernet2/4",
+#                         "Ethernet2/5"
+#                     ],
+#                     "status": "active"
+#                 },
+#                 {
+#                     "id": 3,
+#                     "name": "VLAN0003",
+#                     "ports": [
+#                         "Ethernet2/5"
+#                     ],
+#                     "status": "active"
+#                 },
+#                 {
+#                     "id": 4,
+#                     "name": "VLAN0004",
+#                     "ports": [
+#                         "Ethernet2/5"
+#                     ],
+#                     "status": "active"
+#                 },
+#                 {
+#                     "id": 5,
+#                     "name": "VLAN0005",
+#                     "ports": [
+#                         "Ethernet2/5"
+#                     ],
+#                     "status": "active"
+#                 }
+#             ]
+#         }
+#     },
+#     "changed": false,
+#     "failed": false
+# }
+#
+vars:
+  vlan:
+    id: "{{ item.id }}"
+    name: "{{ item.name }}"
+    status: "{{ item.status }}"
+    ports: "{{ (item.ports|replace('Eth','Ethernet')).split(', ') }}"
+
+keys:
+  vlans:
+    value: "{{ vlan }}"
+    items: "^(?P<id>\\d+)\\s+(?P<name>\\S+)\\s+(?P<status>\\w+)\\s+(?P<ports>.+)"

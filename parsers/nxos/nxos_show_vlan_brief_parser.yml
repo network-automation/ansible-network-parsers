@@ -21,7 +21,7 @@
 #  vars:
 #    vlan_parse_path: /path/to/parsers/nxos_show_vlan_brief_parser.yml
 #  tasks:
-#     - name: get show interface output
+#     - name: get show vlan output
 #       nxos_command:
 #         commands:
 #           - "show vlan brief"

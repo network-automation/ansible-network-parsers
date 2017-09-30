@@ -1,7 +1,9 @@
 ---
 # NXOS Show Interface Parser
 #
-# Command: show interface
+# Command:
+#   - show interface [iface_name] (Single Interface listing)
+#   - show interface ( Multiple interface listing)
 #
 # Example Command Output:
 # ----------------------
@@ -50,6 +52,22 @@
 #    0 lost carrier  0 no carrier  0 babble  0 output discard
 #    0 Tx pause
 #
+# Example Playbook
+# -----------------
+# -hosts: localhost
+#  connection: local
+#  vars:
+#    iface_parse_path: /path/to/parsers/nxos_show_interface_parser.yml
+#  tasks:
+#     - name: Get Interface information
+#       nxos_command:
+#         commands: show interface Ethernet2/2
+#       register: iface_output
+#
+#     - name: Parse Interface Output
+#       set_fact:
+#         nxos_interface: "{{ iface_output[0] | parse_cli(iface_parser_path)}}"
+
 # Schema Output
 # -------------
 #

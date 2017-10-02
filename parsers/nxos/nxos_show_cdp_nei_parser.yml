@@ -1,0 +1,94 @@
+---
+# NXOS Show CDP neighbor Parser
+#
+# Command: show cdp neighbor detail
+#
+# Example Command Output:
+# ----------------------
+#
+# spine1# show cdp nei detail
+# ----------------------------------------
+# Device ID:cumulus
+#
+# Interface address(es):
+# Platform: Linux, Capabilities: Router Switch
+# Interface: mgmt0, Port ID (outgoing port): swp2
+# Holdtime: 111 sec
+#
+# Version:
+# Cumulus Linux version 3.3.2
+#
+# Advertisement Version: 2
+#
+#
+#Example Playbook
+#-----------------
+# - hosts: localhost
+#   connection: local
+#   tasks:
+#     - name: get show cdp nei output
+#       nxos_command:
+#         commands:
+#           - "show cdp nei detail"
+#       register: cdp_output
+#
+#     - name: get show lldp nei output. Ignore errors if feature lldp is not enabled
+#       nxos_command:
+#         commands:
+#           - "show lldp nei"
+#       register: lldp_output
+#       ignore_errors: yes
+#
+#     - name: create fact based on CDP neighbor details
+#       set_fact:
+#           nxos_cdp: "{{ cdp_output.stdout[0] | parse_cli('./parsers/nxos/nxos_show_cdp_nei_parser.yml') }}"
+#
+#     - name: create a blank LLDP neighor detail list because nxos may not always have LLDP turned on
+#       set_fact:
+#         nxos_lldp: []
+#
+#     - name: Set LLDP neighbor detail list if it exists.
+#       set_fact:
+#         nxos_lldp: "{{ (lldp_output.stdout[0] | parse_cli('./parsers/nxos/nxos_show_lldp_nei_parser.yml')).neighbors }}"
+#       when: lldp_output.stdout is defined
+#
+#     - name: combine LLDP and CDP neighbor detail list
+#       set_fact:
+#         nxos_neighbors: "{{ nxos_lldp + nxos_cdp }}"
+#
+# Schema Output
+# -------------
+#
+# ok: [cisco01] => {
+#     "ansible_facts": {
+#         "nxos_neighbors": [
+#             {
+#                 "local_interface": "mgmt0",
+#                 "remote_hostname": "cumulus",
+#                 "remote_interface": "swp2"
+#             }
+#         ]
+#     },
+#     "changed": false,
+#     "failed": false
+# }
+#
+#
+vars:
+  neighbor:
+    local_interface: "{{ item[1].local_iface|replace('Eth', 'Ethernet') }}"
+    remote_hostname: "{{ item[0].rmt_host }}"
+    remote_interface: "{{ item[2].rmt_iface }}"
+
+keys:
+  neighbors:
+    value: "{{ neighbor }}"
+    start_block: "^----.+$"
+    end_block: "^Advertisement.+$"
+    items:
+      - "Device ID:(?P<rmt_host>.+)\\s+Interface"
+      - "Interface: (?P<local_iface>\\S+),"
+      - "Port ID.+:\\s+(?P<rmt_iface>.+)\\s+Holdtime"
+
+
+

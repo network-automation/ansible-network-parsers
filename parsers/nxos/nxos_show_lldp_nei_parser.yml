@@ -1,0 +1,85 @@
+---
+#
+# NXOS Show LLDP neighbor Parser
+#
+# Command: show lldp neighbor detail
+#
+# Example Command Output:
+# ----------------------
+#
+# spine1# show lldp nei
+# Capability codes:
+#   (R) Router, (B) Bridge, (T) Telephone, (C) DOCSIS Cable Device
+#   (W) WLAN Access Point, (P) Repeater, (S) Station, (O) Other
+# Device ID                         Local Intf          Hold-time   Capability  Port ID
+# cumulus01.test.example.com        Eth2/1              120          R           swp1
+# junos01                           Eth2/2              120          BR          em4
+# Total entries displayed: 2
+#
+#Example Playbook
+#-----------------
+# - hosts: localhost
+#   connection: local
+#   tasks:
+#     - name: get show cdp nei output
+#       nxos_command:
+#         commands:
+#           - "show cdp nei detail"
+#       register: cdp_output
+#
+#     - name: get show lldp nei output. Ignore errors if feature lldp is not enabled
+#       nxos_command:
+#         commands:
+#           - "show lldp nei"
+#       register: lldp_output
+#       ignore_errors: yes
+#
+#     - name: create fact based on CDP neighbor details
+#       set_fact:
+#           nxos_cdp: "{{ cdp_output.stdout[0] | parse_cli('./parsers/nxos/nxos_show_cdp_nei_parser.yml') }}"
+#
+#     - name: create a blank LLDP neighor detail list because nxos may not always have LLDP turned on
+#       set_fact:
+#         nxos_lldp: []
+#
+#     - name: Set LLDP neighbor detail list if it exists.
+#       set_fact:
+#         nxos_lldp: "{{ (lldp_output.stdout[0] | parse_cli('./parsers/nxos/nxos_show_lldp_nei_parser.yml')).neighbors }}"
+#       when: lldp_output.stdout is defined
+#
+#     - name: combine LLDP and CDP neighbor detail list
+#       set_fact:
+#         nxos_neighbors: "{{ nxos_lldp + nxos_cdp }}"
+#
+# Schema Output
+# -------------
+#
+# ok: [cisco01] => {
+#     "ansible_facts": {
+#         "nxos_neighbors": [
+#             {
+#                 "local_interface": "Ethernet2/1",
+#                 "remote_hostname": "cumulus01.test.example.com",
+#                 "remote_interface": "swp1"
+#             },
+#             {
+#                 "local_interface": "Ethernet2/2",
+#                 "remote_hostname": "junos01",
+#                 "remote_interface": "em4"
+#             }
+#         ]
+#     },
+#     "changed": false,
+#     "failed": false
+# }
+# #
+vars:
+  neighbor:
+    local_interface: "{{ item.local_iface | replace('Eth','Ethernet') }}"
+    remote_hostname: "{{ item.rmt_host }}"
+    remote_interface: "{{ item.rmt_iface }}"
+
+keys:
+  neighbors:
+    value: "{{ neighbor }}"
+    items: "^(?P<rmt_host>\\S+)\\s{3,}(?P<local_iface>\\S+).+\\s{3,}(?P<rmt_iface>\\S+)\\s+$"

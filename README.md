@@ -3,7 +3,7 @@
 
 This repository contains CLI parsers using the [``parse_cli``](http://docs.ansible.com/ansible/latest/playbooks_filters.html#network-cli-filters) Ansible filter. The networking platforms covered are:
 
-* Cisco NXOS (3 parsers so far)
+* Cisco NXOS (WIP)
 * Cisco IOS (WIP)
 * Cisco IOS-XR (WIP)
 * Arista (WIP)

@@ -1,0 +1,93 @@
+---
+# IOS Show vlan parser
+#
+# Command: show vlan
+#
+# Example Command Output
+# ----------------------
+# VLAN Name                             Status    Ports
+# ---- -------------------------------- --------- -------------------------------
+# 1    default                          active    Gi0/1, Gi0/2, Gi0/3, Gi1/0, Gi1/1, Gi1/2, Gi1/3, Gi2/0
+#                                                 Gi2/1, Gi2/2, Gi2/3, Gi3/0, Gi3/1, Gi3/2, Gi3/3
+# 200  blahblah                         active
+# 1002 fddi-default                     act/unsup
+# 1003 token-ring-default               act/unsup
+# 1004 fddinet-default                  act/unsup
+# 1005 trnet-default                    act/unsup
+#
+# VLAN Type  SAID       MTU   Parent RingNo BridgeNo Stp  BrdgMode Trans1 Trans2
+# ---- ----- ---------- ----- ------ ------ -------- ---- -------- ------ ------
+# 1    enet  100001     1500  -      -      -        -    -        0      0
+# 200  enet  100200     1500  -      -      -        -    -        0      0
+# 1002 fddi  101002     1500  -      -      -        -    -        0      0
+# 1003 tr    101003     1500  -      -      -        -    -        0      0
+# 1004 fdnet 101004     1500  -      -      -        ieee -        0      0
+# 1005 trnet 101005     1500  -      -      -        ibm  -        0      0
+#
+# Primary Secondary Type              Ports
+# ------- --------- ----------------- ------------------------------------------
+#
+# Example Playbook
+# ----------------
+# - hosts: localhost
+#   connection: local
+#   vars:
+#      vlan_parse_path: /path/to/parsers/ios_show_vlan_parser.yml
+#   tasks:
+#      - name: get show vlan output
+#         ios_command:
+#            commands:
+#               - "show vlan"
+#         register: vlan_output
+#
+#      - set_fact:
+#         ios_vlans: "{{ vlan_output.stdout[0] | parse_cli(vlan_parse_path) }}"
+#
+# Schema Output
+#--------------
+#
+#  {
+#     "ansible_facts": {
+#         "ios_vlans": {
+#             "vlans": [
+#                 {
+#                     "id": 1,
+#                     "name": "default",
+#                     "ports": [
+#                         "GigabitEthernet0/1",
+#                         "GigabitEthernet0/2",
+#                         "GigabitEthernet0/3",
+#                         "GigabitEthernet1/0",
+#                     "status": "active"
+#                 },
+#                 {
+#                     "id": 200,
+#                     "name": "vlan200",
+#                     "ports": [
+#                         ""
+#                     ],
+#                     "status": "active"
+#                 },
+#                 {
+#                     "id": 300,
+#                     "name": "vlan300",
+#                     "ports": [
+#                         ""
+#                     ],
+#                     "status": "active"
+#                 }
+#             ]
+#         }
+#    },
+#
+vars:
+  vlan:
+    id: "{{ item.id }}"
+    name: "{{ item.name }}"
+    status: "{{ item.status }}"
+    ports: "{{ (item.ports|replace('Gi', 'GigabitEthernet') | replace('Po','PortChannel')).split(', ') }}"
+
+keys:
+  vlans:
+    value: "{{ vlan }}"
+    items: "^(?P<id>\\d+)\\s+(?P<name>\\S+)\\s+(?P<status>[a-z]{4,})\\s*(?P<ports>([A-Za-z]+).+)?"

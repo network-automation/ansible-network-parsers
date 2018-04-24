@@ -1,4 +1,4 @@
-# Ansible Network Parsers
+# Ansible Network Parsers - DEPRECATED. Use the new network-cli role instead.
 
 
 This repository contains CLI parsers using the [``parse_cli``](http://docs.ansible.com/ansible/latest/playbooks_filters.html#network-cli-filters) Ansible filter. The networking platforms covered are:

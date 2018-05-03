@@ -1,0 +1,116 @@
+---
+# IOS Show interfaces switchport Parser
+#
+# Command: show interfaces switchport
+#
+#
+# Example Command Output:
+# ----------------------
+# cisco1#show interfaces switchport
+# Name: Gi1/0/1
+# Switchport: Enabled
+# Administrative Mode: static access
+# Operational Mode: down
+# Administrative Trunking Encapsulation: dot1q
+# Negotiation of Trunking: Off
+# Access Mode VLAN: 40 (Tech)
+# Trunking Native Mode VLAN: 1 (default)
+# Administrative Native VLAN tagging: enabled
+# Voice VLAN: 6 (VoIP)
+# Administrative private-vlan host-association: none
+# Administrative private-vlan mapping: none
+# Administrative private-vlan trunk native VLAN: none
+# Administrative private-vlan trunk Native VLAN tagging: enabled
+# Administrative private-vlan trunk encapsulation: dot1q
+# Administrative private-vlan trunk normal VLANs: none
+# Administrative private-vlan trunk associations: none
+# Administrative private-vlan trunk mappings: none
+# Operational private-vlan: none
+# Trunking VLANs Enabled: ALL
+# Pruning VLANs Enabled: 2-1001
+# Capture Mode Disabled
+# Capture VLANs Allowed: ALL
+#
+# Protected: false
+# Unknown unicast blocked: disabled
+# Unknown multicast blocked: disabled
+# Appliance trust: none
+#
+
+#Example Playbook
+#-----------------
+# - hosts: localhost
+#   connection: local
+#   tasks:
+# - name: get show interface switchport
+#   ios_command:
+#     commands:
+#       - show interfaces switchport
+#   register: switchport_output
+#
+# - name: create fact based on switchport_output
+#   set_fact:
+#     ios_switchport: "{{ switchport_output.stdout[0] | parse_cli('cli_filters/ios/ios_show_int_switchport.yml') }}"
+#
+# Schema Output
+# -------------
+#
+# ok: [cisco01] => {
+#     "ansible_facts": {
+#         "ios_switchport": [
+#         {
+#             "access_vlan": 100,
+#             "admin_mode": "static access",
+#             "interface": "FastEthernet0/1",
+#             "negotiation": "Off",
+#             "operational_mode": "static access",
+#             "pruning_vlans": "2-1001",
+#             "status": "Enabled",
+#             "trunking_native_vlan": 1,
+#             "trunking_vlans": "ALL",
+#             "voice_vlan": null
+#         },
+#         {
+#             "access_vlan": 100,
+#             "admin_mode": "static access",
+#             "interface": "FastEthernet0/2",
+#             "negotiation": "Off",
+#             "operational_mode": "down",
+#             "pruning_vlans": "2-1001",
+#             "status": "Enabled",
+#             "trunking_native_vlan": 1,
+#             "trunking_vlans": "ALL",
+#             "voice_vlan": null
+#         }
+#     ]
+# }
+#
+vars:
+  switchport:
+    interface: "{{ item[0].interface | replace('Fa', 'FastEthernet') | replace('Gi', 'GigabitEthernet') | replace('Te', 'TenGigabitEthernet') }}"
+    status: "{{ item[1].status }}"
+    admin_mode: "{{ item[2].admin_mode }}"
+    operational_mode: "{{ item[3].operational_mode }}"
+    negotiation: "{{ item[4].negotiation }}"
+    access_vlan: "{{ item[5].access_vlan }}"
+    trunking_native_vlan: "{{ item[6].trunking_native_vlan }}"
+    voice_vlan: "{{ item[7].voice_vlan }}"
+    trunking_vlans: "{{ item[8].trunking_vlans }}"
+    pruning_vlans: "{{ item[9].pruning_vlans }}"
+
+keys:
+  switchports:
+    value: "{{ switchport }}"
+    start_block: "^Name.+$"
+    end_block: "^Capture Mode.+$"
+    items:
+      - "Name: (?P<interface>.+)\n"
+      - "Switchport: (?P<status>.+)\n"
+      - "Administrative Mode: (?P<admin_mode>.+)\n"
+      - "Operational Mode: (?P<operational_mode>.+)\n"
+      - "Negotiation of Trunking: (?P<negotiation>.+)\n"
+      - "Access Mode VLAN: (?P<access_vlan>\\d+).*\n"
+      - "Trunking Native Mode VLAN: (?P<trunking_native_vlan>\\d+).*\n"
+      - "Voice VLAN: (?P<voice_vlan>\\d+).*\n"
+      - "Trunking VLANs Enabled: (?P<trunking_vlans>.+)\n"
+      - "Pruning VLANs Enabled: (?P<pruning_vlans>.+)\n"

@@ -1,0 +1,72 @@
+---
+# IOS Show CDP neighbor Parser
+#
+# Command: show cdp neighbor detail
+#
+# Example Command Output:
+# ----------------------
+#
+# spine1# show cdp nei detail
+# ----------------------------------------
+# Device ID:cumulus
+#
+# Interface address(es):
+# Platform: Linux, Capabilities: Router Switch
+# Interface: mgmt0, Port ID (outgoing port): swp2
+# Holdtime: 111 sec
+#
+# Version:
+# Cumulus Linux version 3.3.2
+#
+# Advertisement Version: 2
+#
+#
+#Example Playbook
+#-----------------
+# - hosts: localhost
+#   connection: local
+#   tasks:
+#     - name: get show cdp nei output
+#       ios_command:
+#         commands:
+#           - show cdp neighbors detail
+#       register: cdp_output
+#
+#     - name: create fact based on CDP neighbor details
+#       set_fact:
+#           ios_cdp: "{{ cdp_output.stdout[0] | parse_cli('./parsers/ios/ios_show_cdp.yml') }}"
+#
+#
+# Schema Output
+# -------------
+#
+# ok: [cisco01] => {
+#     "ansible_facts": {
+#         "neighbors": [
+#             {
+#                 "local_interface": "mgmt0",
+#                 "remote_hostname": "cumulus",
+#                 "remote_interface": "swp2"
+#             }
+#         ]
+#     },
+#     "changed": false,
+#     "failed": false
+# }
+#
+#
+vars:
+  neighbor:
+    local_interface: "{{ item[1].local_iface }}"
+    remote_hostname: "{{ item[0].rmt_host }}"
+    remote_interface: "{{ item[2].rmt_iface }}"
+
+keys:
+  neighbors:
+    value: "{{ neighbor }}"
+    start_block: "^----.+$"
+    end_block: "^advertisement.+$"
+    items:
+      - "Device ID: (?P<rmt_host>.+)\\s+Entry"
+      - "Interface: (?P<local_iface>\\S+),"
+      - "Port ID.+:\\s+(?P<rmt_iface>.+)\\s+Holdtime"
